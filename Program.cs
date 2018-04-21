@@ -10,6 +10,51 @@ namespace SkipLists
     {
         static void Main(string[] args)
         {
+            SkipList<int> skipList = new SkipList<int>(Comparer<int>.Default);
+            while (true)
+            {
+                Console.Clear();
+                Visualize(skipList);
+                string s = Console.ReadLine();
+                int val = s.Length > 1 ? int.Parse(s.Remove(0, 1)) : 0;
+                if (s[0] == 'i')
+                {
+                    skipList.Add(val);
+                }
+                else if (s[0] == 'c')
+                {
+                    Console.Write(skipList.Contains(val));
+                    System.Threading.Thread.Sleep(500);
+                }
+                else if(s[0] == 'r')
+                {
+                    Console.Write(skipList.Remove(val));
+                    System.Threading.Thread.Sleep(500);
+                }
+                else if (s == "R")
+                {
+                    skipList = new SkipList<int>(Comparer<int>.Default);
+                }
+            }
+        }
+
+        static void Visualize(SkipList<int> sL)
+        {
+            Node<int> n = sL.header;
+            int x = 0;
+            while (n != null)
+            {
+                for (int i = 0; i < sL.header.Level; i++)
+                {
+                    if (n.Level > i)
+                    {
+                        Console.SetCursorPosition(x, i);
+                        Console.Write(n.Key);
+                    }
+                }
+                n = n[0];
+                x += 3;
+            }
         }
     }
 }

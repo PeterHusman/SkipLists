@@ -9,7 +9,7 @@ namespace SkipLists
 {
     public class SkipList<T> : ICollection<T>
     {
-        Node<T> header;
+        public Node<T> header;
 
         public Comparer<T> Comparer { get; private set; }
 
@@ -17,6 +17,7 @@ namespace SkipLists
         public SkipList(Comparer<T> comparer)
         {
             this.Comparer = comparer ?? Comparer<T>.Default;
+            header = new Node<T>(1);
         }
 
         public int Count
@@ -61,9 +62,54 @@ namespace SkipLists
 
         public void Add(T item)
         {
-            int level = PickLevel();
-            Last()[0] = new Node<T>(item, level);
-            UpdateNexts();
+            int level = header.Level - 1;
+            Node<T> previous = null;
+            Node<T> n = header;
+            if(n[0] != null && Comparer.Compare(item,n[0].Key) < 0)
+            {
+                Node<T> node = new Node<T>(item, PickLevel());
+                node[0] = n[0];
+                n[0] = node;
+                UpdateNexts();
+                return;
+            }
+            while (true)
+            {
+                if (level < 0)
+                {
+                    n[0] = new Node<T>(item, PickLevel());
+                    UpdateNexts();
+                    return;
+                }
+                if (n[level] == null)
+                {
+                    level--;
+                    continue;
+                }
+                int comparison = Comparer.Compare(item, n[level].Key);
+                if (comparison == 0)
+                {
+                    throw new ArgumentException("Attempted to insert duplicate value.");
+                }
+                if (comparison >= 0)
+                {
+                    previous = n;
+                    n = n[level];
+                    continue;
+                }
+                while (previous[0] != n)
+                {
+                    previous = previous[0];
+                }
+                Node<T> node = new Node<T>(item, PickLevel());
+                node.Next[0] = previous[0][0];
+                previous[0][0] = node;
+                UpdateNexts();
+                return;
+            }
+            //int level = PickLevel();
+            //Last()[0] = new Node<T>(item, level);
+            //UpdateNexts();
         }
 
         void UpdateNexts()
@@ -75,10 +121,14 @@ namespace SkipLists
             }
             for (int i = 0; i < Count; i++)
             {
+                if(previouses[0] == null)
+                {
+                    continue;
+                }
                 Node<T> node = previouses[0];
                 for (int j = 0; j < node.Level - 1; j++)
                 {
-                    if(node.Next[j] != null)
+                    if (node.Next[j] != null)
                     {
                         previouses[j][j] = node.Next[j];
                         previouses[j] = node.Next[j];
@@ -102,14 +152,59 @@ namespace SkipLists
             header = new Node<T>(1);
         }
 
+        Node<T> Find(T item)
+        {
+            int level = header.Level - 1;
+            Node<T> previous = null;
+            Node<T> n = header;
+            while(true)
+            {
+                if(level < 0)
+                {
+                    return null;
+                }
+                if(n[level] == null)
+                {
+                    level--;
+                    continue;
+                }
+                int comparison = Comparer.Compare(item, n[level].Key);
+                if(comparison == 0)
+                {
+                    return n[level];
+                }
+                if (comparison >= 0 || previous == null)
+                {
+                    previous = n;
+                    n = n[level];
+                    continue;
+                }
+                
+                while(previous != n)
+                {
+                    if(Comparer.Compare(item, previous.Key) == 0)
+                    {
+                        return previous;
+                    }
+                    previous = previous[0];
+                }
+            }
+        }
+
         public bool Contains(T item)
         {
-            throw new NotImplementedException();
+            return Find(item) != null;
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            Node<T> n = header[0];
+            while(n != null && arrayIndex < array.Length)
+            {
+                array[arrayIndex] = n.Key;
+                n = n[0];
+                arrayIndex++;
+            }
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -124,7 +219,49 @@ namespace SkipLists
 
         public bool Remove(T item)
         {
-            throw new NotImplementedException();
+            int level = header.Level - 1;
+            Node<T> previous = null;
+            Node<T> n = header;
+            while (true)
+            {
+                if (level < 0)
+                {
+                    return false;
+                }
+                if (n[level] == null)
+                {
+                    level--;
+                    continue;
+                }
+                int comparison = Comparer.Compare(item, n[level].Key);
+                if (comparison == 0)
+                {
+                    while (previous[0] != n[level])
+                    {
+                        previous = previous[0];
+                    }
+                    previous[0] = n[level][0];
+
+                    return true;
+                }
+                if (comparison >= 0 || previous == null)
+                {
+                    previous = n;
+                    n = n[level];
+                    continue;
+                }
+
+                while (previous[0] != n)
+                {
+                    if (Comparer.Compare(item, previous[0].Key) == 0)
+                    {
+                        previous[0] = previous[0][0];
+                        UpdateNexts();
+                        return true;
+                    }
+                    previous = previous[0];
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
