@@ -9,7 +9,7 @@ namespace SkipLists
     public class Node<T>
     {
         public Node<T>[] Next;
-        public int Level => Next.Length;
+        public int Height => Next.Length;
 
         public Node<T> this[int index]
         {
@@ -38,9 +38,9 @@ namespace SkipLists
 
         public void IncreaseMaxLevel()
         {
-            Node<T>[] temp = new Node<T>[Level + 1];
+            Node<T>[] temp = new Node<T>[Height + 1];
             Next.CopyTo(temp, 0);
-            temp[Level] = null;
+            temp[Height] = null;
             Next = temp;
         }
 

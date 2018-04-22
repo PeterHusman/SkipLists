@@ -26,14 +26,14 @@ namespace SkipLists
                     Console.Write(skipList.Contains(val));
                     System.Threading.Thread.Sleep(500);
                 }
-                else if(s[0] == 'r')
+                else if(s[0] == 'd')
                 {
                     Console.Write(skipList.Remove(val));
                     System.Threading.Thread.Sleep(500);
                 }
                 else if (s == "R")
                 {
-                    skipList = new SkipList<int>(Comparer<int>.Default);
+                    skipList.Clear();
                 }
             }
         }
@@ -44,9 +44,9 @@ namespace SkipLists
             int x = 0;
             while (n != null)
             {
-                for (int i = 0; i < sL.header.Level; i++)
+                for (int i = 0; i < sL.header.Height; i++)
                 {
-                    if (n.Level > i)
+                    if (n.Height > i)
                     {
                         Console.SetCursorPosition(x, i);
                         Console.Write(n.Key);
